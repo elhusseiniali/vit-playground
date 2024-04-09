@@ -9,7 +9,8 @@ initializer_range = 0.02
 
 qkv_bias = True
 
-config_CIFAR10 = {
+
+CIFAR10 = {
     "patch_size": patch_size,
     "hidden_size": 48,
     "num_hidden_layers": num_hidden_layers,
@@ -24,7 +25,7 @@ config_CIFAR10 = {
     "qkv_bias": qkv_bias,
 }
 
-config_MNIST = {
+MNIST = {
     "patch_size": patch_size,
     "hidden_size": 48,
     "num_hidden_layers": num_hidden_layers,
@@ -39,7 +40,7 @@ config_MNIST = {
     "qkv_bias": qkv_bias,
 }
 
-config_Places365 = {
+Places365 = {
     "patch_size": patch_size,
     "hidden_size": 48,
     "num_hidden_layers": num_hidden_layers,
@@ -54,7 +55,7 @@ config_Places365 = {
     "qkv_bias": qkv_bias,
 }
 
-config_ImageNet200 = {
+ImageNet200 = {
     "patch_size": patch_size,
     "hidden_size": 48,
     "num_hidden_layers": num_hidden_layers,
@@ -67,4 +68,12 @@ config_ImageNet200 = {
     "num_classes": 200, # num_classes of ImageNet
     "num_channels": 3, # num_channels of ImageNet - color
     "qkv_bias": qkv_bias,
+}
+
+
+data_config = {
+    'CIFAR10': CIFAR10,
+    'MNIST': MNIST,
+    'Places365': Places365,
+    'ImageNet200': ImageNet200
 }
