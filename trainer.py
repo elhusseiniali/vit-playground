@@ -30,7 +30,7 @@ class Trainer:
         # Train the model
         for i in range(epochs):
             print(f'Starting Epoch {i + 1} of {epochs}.')
-            train_loss = self.train_epoch(trainloader)
+            train_loss = self.step(trainloader)
             accuracy, test_loss = self.evaluate(testloader)
             train_losses.append(train_loss)
             test_losses.append(test_loss)
@@ -51,7 +51,7 @@ class Trainer:
             self.exp_name, self.config, self.model,
             train_losses, test_losses, accuracies)
 
-    def train_epoch(self, trainloader):
+    def step(self, trainloader):
         """
         Train the model for one epoch.
         """
