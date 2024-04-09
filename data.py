@@ -79,8 +79,8 @@ def load_data(name, img_size,
 def cifar10(
     img_size=(32, 32),
     batch_size=4, num_workers=2,
-    train_sample_size=None,
-    test_sample_size=None
+    train_size=None,
+    test_size=None
     ):
     # TODO
     # parametrize: output path for torchvision.datasets.CIFAR10(root=path)
@@ -105,9 +105,9 @@ def cifar10(
         root='../data', train=True,
         download=True, transform=train_transform
     )
-    if train_sample_size is not None:
+    if train_size is not None:
         # Randomly sample a subset of the training set
-        indices = torch.randperm(len(trainset))[:train_sample_size]
+        indices = torch.randperm(len(trainset))[:train_size]
         trainset = torch.utils.data.Subset(trainset, indices)
 
     trainloader = torch.utils.data.DataLoader(
@@ -128,9 +128,9 @@ def cifar10(
         root='../data', train=False,
         download=True, transform=test_transform
     )
-    if test_sample_size is not None:
+    if test_size is not None:
         # Randomly sample a subset of the test set
-        indices = torch.randperm(len(testset))[:test_sample_size]
+        indices = torch.randperm(len(testset))[:test_size]
         testset = torch.utils.data.Subset(testset, indices)
 
     testloader = torch.utils.data.DataLoader(
@@ -149,7 +149,7 @@ def cifar10(
 def mnist(
     img_size=(28, 28),
     batch_size=4, num_workers=2,
-    train_sample_size=None, test_sample_size=None
+    train_size=None, test_size=None
     ):
     # TODO
     # parametrize: '../data'
@@ -172,9 +172,9 @@ def mnist(
         root='../data', train=True,
         download=True, transform=train_transform
     )
-    if train_sample_size is not None:
+    if train_size is not None:
         # Randomly sample a subset of the training set
-        indices = torch.randperm(len(trainset))[:train_sample_size]
+        indices = torch.randperm(len(trainset))[:train_size]
         trainset = torch.utils.data.Subset(trainset, indices)
 
     trainloader = torch.utils.data.DataLoader(
@@ -193,9 +193,9 @@ def mnist(
         root='../data', train=False,
         download=True, transform=test_transform
     )
-    if test_sample_size is not None:
+    if test_size is not None:
         # Randomly sample a subset of the test set
-        indices = torch.randperm(len(testset))[:test_sample_size]
+        indices = torch.randperm(len(testset))[:test_size]
         testset = torch.utils.data.Subset(testset, indices)
 
     testloader = torch.utils.data.DataLoader(
@@ -211,7 +211,7 @@ def mnist(
 def places365(
     img_size=(64, 64),
     batch_size=4, num_workers=2,
-    train_sample_size=100000, test_sample_size=25000
+    train_size=100000, test_size=25000
     ):
     # TODO
     # parametrize: (64, 64)
@@ -240,9 +240,9 @@ def places365(
         small= True, transform = train_transform, download= True
     )
     
-    if train_sample_size is not None:
+    if train_size is not None:
         # Randomly sample a subset of the training set
-        indices = torch.randperm(len(trainset))[:train_sample_size]
+        indices = torch.randperm(len(trainset))[:train_size]
         trainset = torch.utils.data.Subset(trainset, indices)
 
     trainloader = torch.utils.data.DataLoader(
@@ -266,9 +266,9 @@ def places365(
         root='./data', split='val', 
         small= True, transform = test_transform, download= True
     )
-    if test_sample_size is not None:
+    if test_size is not None:
         # Randomly sample a subset of the test set
-        indices = torch.randperm(len(testset))[:test_sample_size]
+        indices = torch.randperm(len(testset))[:test_size]
         testset = torch.utils.data.Subset(testset, indices)
 
     testloader = torch.utils.data.DataLoader(
