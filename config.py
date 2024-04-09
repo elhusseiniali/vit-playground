@@ -11,6 +11,7 @@ qkv_bias = True
 
 
 CIFAR10 = {
+    "name": "CIFAR10",
     "patch_size": patch_size,
     "hidden_size": 48,
     "num_hidden_layers": num_hidden_layers,
@@ -19,13 +20,14 @@ CIFAR10 = {
     "hidden_dropout_prob": hidden_dropout_prob,
     "attention_probs_dropout_prob": attention_probs_dropout_prob,
     "initializer_range": initializer_range,
-    "image_size": 32, # image_size of CIFAR10 
-    "num_classes": 10, # num_classes of CIFAR10
-    "num_channels": 3, # num_channels of CIFAR10 - color
+    "image_size": 32,
+    "num_classes": 10,
+    "num_channels": 3,
     "qkv_bias": qkv_bias,
 }
 
 MNIST = {
+    "name": "MNIST",
     "patch_size": patch_size,
     "hidden_size": 48,
     "num_hidden_layers": num_hidden_layers,
@@ -34,13 +36,14 @@ MNIST = {
     "hidden_dropout_prob": hidden_dropout_prob,
     "attention_probs_dropout_prob": attention_probs_dropout_prob,
     "initializer_range": initializer_range,
-    "image_size": 28, # image_size of MNIST
-    "num_classes": 10, # num_classes of MNIST
-    "num_channels": 1, # num_channels of MNIST - greyscale
+    "image_size": 28,
+    "num_classes": 10,
+    "num_channels": 1,
     "qkv_bias": qkv_bias,
 }
 
 Places365 = {
+    "name": "Places365",
     "patch_size": patch_size,
     "hidden_size": 48,
     "num_hidden_layers": num_hidden_layers,
@@ -49,13 +52,14 @@ Places365 = {
     "hidden_dropout_prob": hidden_dropout_prob,
     "attention_probs_dropout_prob": attention_probs_dropout_prob,
     "initializer_range": initializer_range,
-    "image_size": 64, # image_size of Places365 - variable - convention is 256 but CUDA memory
-    "num_classes": 365, # num_classes of Places365
-    "num_channels": 3, # num_channels of Places365 - color
+    "image_size": 64,
+    "num_classes": 365,
+    "num_channels": 3,
     "qkv_bias": qkv_bias,
 }
 
 ImageNet200 = {
+    "name": "ImageNet200",
     "patch_size": patch_size,
     "hidden_size": 48,
     "num_hidden_layers": num_hidden_layers,
@@ -64,9 +68,9 @@ ImageNet200 = {
     "hidden_dropout_prob": hidden_dropout_prob,
     "attention_probs_dropout_prob": attention_probs_dropout_prob,
     "initializer_range": initializer_range,
-    "image_size": 64, # image_size of ImageNet - variable - convention is 224 but CUDA memory
-    "num_classes": 200, # num_classes of ImageNet
-    "num_channels": 3, # num_channels of ImageNet - color
+    "image_size": 64,
+    "num_classes": 200,
+    "num_channels": 3,
     "qkv_bias": qkv_bias,
 }
 
