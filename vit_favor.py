@@ -12,7 +12,17 @@ class NewGELUActivation(nn.Module):
     """
 
     def forward(self, input):
-        return 0.5 * input * (1.0 + torch.tanh(math.sqrt(2.0 / math.pi) * (input + 0.044715 * torch.pow(input, 3.0))))
+        return (
+            0.5
+            * input
+            * (
+                1.0
+                + torch.tanh(
+                    math.sqrt(2.0 / math.pi)
+                    * (input + 0.044715 * torch.pow(input, 3.0))
+                )
+            )
+        )
 
 
 class PatchEmbeddings(nn.Module):
@@ -30,7 +40,12 @@ class PatchEmbeddings(nn.Module):
         self.num_patches = (self.image_size // self.patch_size) ** 2
         # Create a projection layer to convert the image into patches
         # The layer projects each patch into a vector of size hidden_size
-        self.projection = nn.Conv2d(self.num_channels, self.hidden_size, kernel_size=self.patch_size, stride=self.patch_size)
+        self.projection = nn.Conv2d(
+            self.num_channels,
+            self.hidden_size,
+            kernel_size=self.patch_size,
+            stride=self.patch_size,
+        )
 
     def forward(self, x):
         # (batch_size, num_channels, image_size, image_size) -> (batch_size, hidden_size, num_patches)
@@ -56,8 +71,9 @@ class Embeddings(nn.Module):
         self.cls_token = nn.Parameter(torch.randn(1, 1, config["hidden_size"]))
         # Create position embeddings for the [CLS] token and the patch embeddings
         # Add 1 to the sequence length for the [CLS] token
-        self.position_embeddings = \
-            nn.Parameter(torch.randn(1, self.patch_embeddings.num_patches + 1, config["hidden_size"]))
+        self.position_embeddings = nn.Parameter(
+            torch.randn(1, self.patch_embeddings.num_patches + 1, config["hidden_size"])
+        )
         self.dropout = nn.Dropout(config["hidden_dropout_prob"])
 
     def forward(self, x):
@@ -80,7 +96,13 @@ class AttentionHead(nn.Module):
     This module is used in the MultiHeadAttention module.
 
     """
-    def __init__(self, hidden_size, attention_head_size, num_attention_heads, dropout, bias=True):
+
+    def __init__(
+        self,
+        hidden_size,
+        attention_head_size, num_attention_heads,
+        dropout, bias=True, m=16
+    ):
         super().__init__()
         # x --> (batch_size, hidden_size, num_patches)
         self.hidden_size = hidden_size
@@ -93,10 +115,15 @@ class AttentionHead(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-        self.proj = nn.Linear(hidden_size*num_attention_heads, hidden_size*num_attention_heads)
+        self.proj = nn.Linear(
+            hidden_size * num_attention_heads,
+            hidden_size * num_attention_heads
+        )
         # number of random features
-        self.m = int(12)
-        self.w = nn.Parameter(torch.randn(self.m, attention_head_size), requires_grad = False)
+        self.m = m
+        self.w = nn.Parameter(
+            torch.randn(self.m, attention_head_size), requires_grad=False
+        )
 
     def prm_exp(self, x):
         # ==== positive random features for gaussian kernels ====
@@ -107,20 +134,27 @@ class AttentionHead(nn.Module):
         # therefore return exp(w^Tx - |x|/2)/sqrt(m)
         # print(f'size of x {x.shape}')
         # print(f'size of w {self.w.shape}')
-        xd = ((x*x).sum(dim = -1, keepdim = True)).repeat(1, 1, self.m)/2
+        xd = ((x * x).sum(dim=-1, keepdim=True)).repeat(1, 1, self.m) / 2
         # print(f'size of xd {xd.shape}')
-        wtx = torch.einsum('bti,mi->btm', x, self.w)
+        wtx = torch.einsum("bti,mi->btm", x, self.w)
         # print(f'size of wtx {wtx.shape}')
-        return torch.exp(wtx - xd)/math.sqrt(self.m)
+        return torch.exp(wtx - xd) / math.sqrt(self.m)
 
     def forward(self, x):
         # print(f'inside forward {type(x)}')
-        kp, qp = self.prm_exp(self.key(x)), self.prm_exp(self.query(x)) # (B, T, m), (B, T, m)
-        D =  torch.einsum('bti,bi->bt', qp, kp.sum(dim = 1)).unsqueeze(dim = 2) # (B, T, m) * (B, m) -> (B, T, 1)
-        kptv = torch.einsum('bin,bim->bnm', self.value(x), kp) #(B, hidden_size, m)
+        kp, qp = (
+            self.prm_exp(self.key(x)),
+            self.prm_exp(self.query(x)),
+        )  # (B, T, m), (B, T, m)
+        D = torch.einsum("bti,bi->bt", qp, kp.sum(dim=1)).unsqueeze(
+            dim=2
+        )  # (B, T, m) * (B, m) -> (B, T, 1)
+        kptv = torch.einsum("bin,bim->bnm", self.value(x), kp)  # (B, hidden_size, m)
         attention_probs = kptv
         # print(f'(kptv,qp,D) {(kptv.shape, qp.shape ,D.shape)}')
-        attention_output = torch.einsum('bti,bni->btn', qp, kptv)/D.repeat(1, 1, self.attention_head_size) #(B, T, hidden_size)/Diag
+        attention_output = torch.einsum("bti,bni->btn", qp, kptv) / D.repeat(
+            1, 1, self.attention_head_size
+        )  # (B, T, hidden_size)/Diag
         return (attention_output, attention_probs)
 
 
@@ -130,7 +164,7 @@ class MultiHeadAttention(nn.Module):
     This module is used in the TransformerEncoder module.
     """
 
-    def __init__(self, config):
+    def __init__(self, config, m=16):
         super().__init__()
         self.hidden_size = config["hidden_size"]
         self.num_attention_heads = config["num_attention_heads"]
@@ -148,6 +182,7 @@ class MultiHeadAttention(nn.Module):
                 self.num_attention_heads,
                 self.qkv_bias,
                 config["attention_probs_dropout_prob"],
+                m=m
             )
             self.heads.append(head)
         # Create a linear layer to project the attention output back to the hidden size
@@ -159,7 +194,9 @@ class MultiHeadAttention(nn.Module):
         # Calculate the attention output for each attention head
         attention_outputs = [head(x) for head in self.heads]
         # Concatenate the attention outputs from each attention head
-        attention_output = torch.cat([attention_output for attention_output, _ in attention_outputs], dim=-1)
+        attention_output = torch.cat(
+            [attention_output for attention_output, _ in attention_outputs], dim=-1
+        )
         # Project the concatenated attention output back to the hidden size
         attention_output = self.output_projection(attention_output)
         attention_output = self.output_dropout(attention_output)
@@ -168,8 +205,11 @@ class MultiHeadAttention(nn.Module):
         if not output_attentions:
             return (attention_output, None)
         else:
-            attention_probs = torch.stack([attention_probs for _, attention_probs in attention_outputs], dim=1)
+            attention_probs = torch.stack(
+                [attention_probs for _, attention_probs in attention_outputs], dim=1
+            )
             return (attention_output, attention_probs)
+
 
 class MLP(nn.Module):
     """
@@ -206,8 +246,9 @@ class Block(nn.Module):
     def forward(self, x, output_attentions=False):
         # print(f'shape of x in block {x.shape}')
         # Self-attention
-        attention_output, attention_probs = \
-            self.attention(self.layernorm_1(x), output_attentions=output_attentions)
+        attention_output, attention_probs = self.attention(
+            self.layernorm_1(x), output_attentions=output_attentions
+        )
         # Skip connection
         x = x + attention_output
         # Feed-forward network
@@ -278,7 +319,9 @@ class ViTForClassfication(nn.Module):
         # print(f'shape after embedding of x {x.shape}')
         # print(f'shape of embedding {embedding_output.shape}')
         # Calculate the encoder's output
-        encoder_output, all_attentions = self.encoder(embedding_output, output_attentions=output_attentions)
+        encoder_output, all_attentions = self.encoder(
+            embedding_output, output_attentions=output_attentions
+        )
         # print(f'shape after encoder of x {x.shape}')
         # Calculate the logits, take the [CLS] token's output as features for classification
         logits = self.classifier(encoder_output[:, 0, :])
@@ -290,7 +333,9 @@ class ViTForClassfication(nn.Module):
 
     def _init_weights(self, module):
         if isinstance(module, (nn.Linear, nn.Conv2d)):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=self.config["initializer_range"])
+            torch.nn.init.normal_(
+                module.weight, mean=0.0, std=self.config["initializer_range"]
+            )
             if module.bias is not None:
                 torch.nn.init.zeros_(module.bias)
         elif isinstance(module, nn.LayerNorm):
