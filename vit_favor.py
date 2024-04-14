@@ -236,9 +236,10 @@ class Block(nn.Module):
     A single transformer block.
     """
 
-    def __init__(self, config):
+    def __init__(self, config, m=16):
         super().__init__()
-        self.attention = MultiHeadAttention(config)
+        self.m = m
+        self.attention = MultiHeadAttention(config, m=self.m)
         self.layernorm_1 = nn.LayerNorm(config["hidden_size"])
         self.mlp = MLP(config)
         self.layernorm_2 = nn.LayerNorm(config["hidden_size"])
@@ -268,12 +269,13 @@ class Encoder(nn.Module):
     The transformer encoder module.
     """
 
-    def __init__(self, config):
+    def __init__(self, config, m=16):
         super().__init__()
         # Create a list of transformer blocks
         self.blocks = nn.ModuleList([])
+        self.m = m
         for _ in range(config["num_hidden_layers"]):
-            block = Block(config)
+            block = Block(config, m=self.m)
             self.blocks.append(block)
 
     def forward(self, x, output_attentions=False):
@@ -297,7 +299,7 @@ class ViTForClassfication(nn.Module):
     The ViT model for classification.
     """
 
-    def __init__(self, config):
+    def __init__(self, config, m=16):
         super().__init__()
         self.config = config
         self.image_size = config["image_size"]
@@ -306,7 +308,8 @@ class ViTForClassfication(nn.Module):
         # Create the embedding module
         self.embedding = Embeddings(config)
         # Create the transformer encoder module
-        self.encoder = Encoder(config)
+        self.m = m
+        self.encoder = Encoder(config, m=self.m)
         # Create a linear layer to project the encoder's output to the number of classes
         self.classifier = nn.Linear(self.hidden_size, self.num_classes)
         # Initialize the weights
