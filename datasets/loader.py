@@ -2,8 +2,8 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 
-from places365classes import places365_classes
-from tiny_img import download_tinyImg200
+from .places365classes import places365_classes
+from .tiny_img import download_tinyImg200
 
 import os
 
