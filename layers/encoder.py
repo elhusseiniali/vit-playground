@@ -7,18 +7,18 @@ class Encoder(nn.Module):
     The transformer encoder module.
     """
 
-    def __init__(self, config, performer=False, m=16):
+    def __init__(self, config, relu=False, m=16):
         super().__init__()
         # Create a list of transformer blocks
         self.blocks = nn.ModuleList([])
         self.m = m
+        self.relu = relu
         for _ in range(config["num_hidden_layers"]):
-            block = Block(config, performer=performer, m=self.m)
+            block = Block(config, relu=self.relu, m=self.m)
             self.blocks.append(block)
 
     def forward(self, x, output_attentions=False):
         # Calculate the transformer block's output for each block
-
         all_attentions = []
         for block in self.blocks:
             # print(f'shape of x in encoder for loop {x.shape}')
