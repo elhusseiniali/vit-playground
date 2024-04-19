@@ -5,13 +5,18 @@ import math
 from .mlp import MLP
 
 
-class VanillaAttentionHead(nn.Module):
+class AttentionHead(nn.Module):
     """
     A single attention head.
     This module is used in the MultiHeadAttention module.
 
     """
-    def __init__(self, hidden_size, attention_head_size, dropout, bias=True):
+    def __init__(self,
+                 hidden_size,
+                 attention_head_size,
+                 dropout,
+                 bias=True,
+                 relu=False):
         super().__init__()
         self.hidden_size = hidden_size
         self.attention_head_size = attention_head_size
@@ -21,6 +26,7 @@ class VanillaAttentionHead(nn.Module):
         self.value = nn.Linear(hidden_size, attention_head_size, bias=bias)
 
         self.dropout = nn.Dropout(dropout)
+        self.relu = relu
     
     def forward(self, x):
         # Project the input into query, key, and value
@@ -32,13 +38,16 @@ class VanillaAttentionHead(nn.Module):
         value = self.value(x)
         # Calculate the attention scores
         attention_scores = torch.matmul(query, key.transpose(-1, -2))
-        attention_scores = attention_scores / math.sqrt(self.attention_head_size)
-        
-        # # softmax(Q*K.T/sqrt(head_size))*V
-        # attention_probs = nn.functional.softmax(attention_scores, dim=-1)
-        
-        # relu(Q*K.T/sqrt(head_size))*V
-        attention_probs = nn.functional.relu(attention_scores)
+        attention_scores = (
+            attention_scores / math.sqrt(self.attention_head_size)
+        )
+
+        if self.relu:
+            # relu(Q*K.T/sqrt(head_size))*V
+            attention_probs = nn.functional.relu(attention_scores)
+        else:
+            # softmax(Q*K.T/sqrt(head_size))*V
+            attention_probs = nn.functional.softmax(attention_scores, dim=-1)
         
         attention_probs = self.dropout(attention_probs)
         # Calculate the attention output
@@ -46,13 +55,13 @@ class VanillaAttentionHead(nn.Module):
         return (attention_output, attention_probs)
 
 
-class VanillaMultiHeadAttention(nn.Module):
+class MultiHeadAttention(nn.Module):
     """
     Multi-head attention module.
     This module is used in the TransformerEncoder module.
     """
 
-    def __init__(self, config):
+    def __init__(self, config, relu=False):
         super().__init__()
         self.hidden_size = config["hidden_size"]
         self.num_attention_heads = config["num_attention_heads"]
@@ -62,14 +71,17 @@ class VanillaMultiHeadAttention(nn.Module):
         self.all_head_size = self.num_attention_heads * self.attention_head_size
         # Whether or not to use bias in the query, key, and value projection layers
         self.qkv_bias = config["qkv_bias"]
+
+        self.relu = relu
         # Create a list of attention heads
         self.heads = nn.ModuleList([])
         for _ in range(self.num_attention_heads):
-            head = VanillaAttentionHead(
-                self.hidden_size,
-                self.attention_head_size,
-                config["attention_probs_dropout_prob"],
-                self.qkv_bias
+            head = AttentionHead(
+                hidden_size=self.hidden_size,
+                attention_head_size=self.attention_head_size,
+                dropout=config["attention_probs_dropout_prob"],
+                bias=self.qkv_bias,
+                relu=self.relu
             )
             self.heads.append(head)
         # Create a linear layer to project the attention output back to the hidden size
@@ -97,7 +109,7 @@ class VanillaMultiHeadAttention(nn.Module):
             return (attention_output, attention_probs)
 
 
-class PerformerAttentionHead(nn.Module):
+class RandomFeaturesAttentionHead(nn.Module):
     """
     A single attention head.
     This module is used in the PerformerMultiHeadAttention module.
@@ -138,16 +150,11 @@ class PerformerAttentionHead(nn.Module):
         # return : x : B, T, m
         # SM(x, y) = E_w[exp(w^T x - |x|/2) exp(w^T y - |y|/2)]
         # therefore return exp(w^Tx - |x|/2)/sqrt(m)
-        # print(f'size of x {x.shape}')
-        # print(f'size of w {self.w.shape}')
         xd = ((x * x).sum(dim=-1, keepdim=True)).repeat(1, 1, self.m) / 2
-        # print(f'size of xd {xd.shape}')
         wtx = torch.einsum("bti,mi->btm", x, self.w)
-        # print(f'size of wtx {wtx.shape}')
         return torch.exp(wtx - xd) / math.sqrt(self.m)
 
     def forward(self, x):
-        # print(f'inside forward {type(x)}')
         kp, qp = (
             self.prm_exp(self.key(x)),
             self.prm_exp(self.query(x)),
@@ -157,14 +164,13 @@ class PerformerAttentionHead(nn.Module):
         )  # (B, T, m) * (B, m) -> (B, T, 1)
         kptv = torch.einsum("bin,bim->bnm", self.value(x), kp)  # (B, hidden_size, m)
         attention_probs = kptv
-        # print(f'(kptv,qp,D) {(kptv.shape, qp.shape ,D.shape)}')
         attention_output = torch.einsum("bti,bni->btn", qp, kptv) / D.repeat(
             1, 1, self.attention_head_size
         )  # (B, T, hidden_size)/Diag
         return (attention_output, attention_probs)
 
 
-class PerformerMultiHeadAttention(nn.Module):
+class RandomFeaturesMultiHeadAttention(nn.Module):
     """
     Multi-head attention module.
     This module is used in the TransformerEncoder module.
@@ -182,7 +188,7 @@ class PerformerMultiHeadAttention(nn.Module):
         # Create a list of attention heads
         self.heads = nn.ModuleList([])
         for _ in range(self.num_attention_heads):
-            head = PerformerAttentionHead(
+            head = RandomFeaturesAttentionHead(
                 self.hidden_size,
                 self.attention_head_size,
                 self.num_attention_heads,
@@ -221,10 +227,11 @@ class Block(nn.Module):
     A single transformer block.
     """
 
-    def __init__(self, config, performer=False, m=16):
+    def __init__(self, config, performer=False, relu=False, m=16):
         super().__init__()
         self.use_faster_attention = config.get("use_faster_attention", False)
         self.m = m
+        self.relu = relu
         if self.use_faster_attention:
             # self.attention = FasterMultiHeadAttention(config)
             raise NotImplementedError
@@ -232,9 +239,9 @@ class Block(nn.Module):
             if performer:
                 if not m:
                     raise ValueError('m should not be None.')
-                self.attention = PerformerMultiHeadAttention(config, m=self.m)
+                self.attention = RandomFeaturesMultiHeadAttention(config, m=self.m)
             else:
-                self.attention = VanillaMultiHeadAttention(config)
+                self.attention = MultiHeadAttention(config, relu=self.relu)
         self.layernorm_1 = nn.LayerNorm(config["hidden_size"])
         self.mlp = MLP(config)
         self.layernorm_2 = nn.LayerNorm(config["hidden_size"])
