@@ -227,7 +227,7 @@ class Block(nn.Module):
     A single transformer block.
     """
 
-    def __init__(self, config, performer=False, relu=False, m=16):
+    def __init__(self, config, random_features=False, relu=False, m=16):
         super().__init__()
         self.use_faster_attention = config.get("use_faster_attention", False)
         self.m = m
@@ -236,10 +236,12 @@ class Block(nn.Module):
             # self.attention = FasterMultiHeadAttention(config)
             raise NotImplementedError
         else:
-            if performer:
+            if random_features:
                 if not m:
                     raise ValueError('m should not be None.')
-                self.attention = RandomFeaturesMultiHeadAttention(config, m=self.m)
+                self.attention = RandomFeaturesMultiHeadAttention(
+                    config, m=self.m
+                )
             else:
                 self.attention = MultiHeadAttention(config, relu=self.relu)
         self.layernorm_1 = nn.LayerNorm(config["hidden_size"])
