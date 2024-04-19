@@ -7,14 +7,20 @@ class Encoder(nn.Module):
     The transformer encoder module.
     """
 
-    def __init__(self, config, relu=False, m=16):
+    def __init__(self, config, random_features=False, relu=False, m=16):
         super().__init__()
         # Create a list of transformer blocks
         self.blocks = nn.ModuleList([])
-        self.m = m
+        self.random_features = random_features
         self.relu = relu
+        self.m = m
         for _ in range(config["num_hidden_layers"]):
-            block = Block(config, relu=self.relu, m=self.m)
+            block = Block(
+                config,
+                random_features=self.random_features,
+                relu=self.relu,
+                m=self.m
+            )
             self.blocks.append(block)
 
     def forward(self, x, output_attentions=False):
