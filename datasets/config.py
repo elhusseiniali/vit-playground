@@ -1,3 +1,24 @@
+SUPPORTED_DATASETS = ['cifar10', 'mnist', 'places365', 'imagenet200']
+
+
+def data_config(dataset):
+    if not isinstance(dataset, str):
+        raise TypeError('Name of dataset should be str.'
+                        f'Got {type(dataset)} instead.')
+    dataset = dataset.lower()
+    if dataset not in SUPPORTED_DATASETS:
+        raise ValueError(f'Unsupported dataset: {dataset}')
+    
+    if dataset == 'cifar10':
+        return CIFAR10
+    elif dataset == 'mnist':
+        return MNIST
+    elif dataset == 'places365':
+        return Places365
+    elif dataset == 'imagenet200':
+        return ImageNet200
+
+
 patch_size = 4
 
 num_hidden_layers = 4
@@ -72,12 +93,4 @@ ImageNet200 = {
     "num_classes": 200,
     "num_channels": 3,
     "qkv_bias": qkv_bias,
-}
-
-
-data_config = {
-    'CIFAR10': CIFAR10,
-    'MNIST': MNIST,
-    'Places365': Places365,
-    'ImageNet200': ImageNet200
 }
