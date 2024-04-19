@@ -10,7 +10,7 @@ class ViTForClassfication(nn.Module):
     The ViT model for classification.
     """
 
-    def __init__(self, config, relu=False, m=16):
+    def __init__(self, config, random_features=False, relu=False, m=16):
         super().__init__()
         self.config = config
         self.image_size = config["image_size"]
@@ -19,9 +19,16 @@ class ViTForClassfication(nn.Module):
         # Create the embedding module
         self.embedding = Embeddings(config)
         # Create the transformer encoder module
+        self.random_features = random_features
         self.relu = relu
         self.m = m
-        self.encoder = Encoder(config, relu=self.relu, m=self.m)
+
+        self.encoder = Encoder(
+            config,
+            random_features=self.random_features,
+            relu=self.relu,
+            m=self.m
+        )
         # Create a linear layer to project the encoder's output to 
         # the number of classes
         self.classifier = nn.Linear(self.hidden_size, self.num_classes)
