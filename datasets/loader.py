@@ -4,6 +4,7 @@ import torchvision.transforms as transforms
 
 from .places365classes import places365_classes
 from .tiny_img import download_tinyImg200
+from .config import SUPPORTED_DATASETS
 
 import os
 
@@ -45,9 +46,7 @@ def load_data(name, img_size,
         raise TypeError('Name of dataset should be str. '
                         f'Got {type(name)} instead.')
     name = name.lower()
-    if name not in [
-        'cifar10', 'mnist', 'places365', 'imagenet200'
-    ]:
+    if name not in SUPPORTED_DATASETS:
         raise ValueError(f'Unsupported dataset: {name}')
 
     if name == 'cifar10':
@@ -73,7 +72,6 @@ def load_data(name, img_size,
             img_size=img_size,
             batch_size=batch_size, num_workers=num_workers
         )
-    return 1
 
 
 def cifar10(
