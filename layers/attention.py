@@ -43,8 +43,8 @@ class AttentionHead(nn.Module):
         )
 
         if self.relu:
-            # relu(Q*K.T/sqrt(head_size))*V
-            attention_probs = nn.functional.relu(attention_scores)
+            attention_probs = torch.matmul(torch.relu(key).transpose(-1, -2), value)
+            attention_output = torch.matmul(torch.relu(query), attention_probs)
         else:
             # softmax(Q*K.T/sqrt(head_size))*V
             attention_probs = nn.functional.softmax(attention_scores, dim=-1)
