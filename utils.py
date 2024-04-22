@@ -18,6 +18,8 @@ def save_experiment(
     train_losses,
     test_losses,
     accuracies,
+    train_times,
+    inference_times,
     base_dir="experiments",
 ):
     outdir = os.path.join(base_dir, experiment_name)
@@ -28,17 +30,18 @@ def save_experiment(
     with open(configfile, "w") as f:
         json.dump(config, f, sort_keys=True, indent=4)
 
-    # Save the metrics
+    # Save the metrics to json
     jsonfile = os.path.join(outdir, "metrics.json")
     with open(jsonfile, "w") as f:
         data = {
             "train_losses": train_losses,
             "test_losses": test_losses,
             "accuracies": accuracies,
+            "train_times": train_times,
+            "inference_times": inference_times,
         }
         json.dump(data, f, sort_keys=True, indent=4)
 
-    # Save the model
     save_checkpoint(experiment_name, model, "final", base_dir=base_dir)
 
 
@@ -164,9 +167,10 @@ def visualize_attention(model, dataset, output=None, device="cuda"):
         images = torch.stack([test_transform(image) for image in raw_images])
 
     elif dataset == "MNIST":
+        image_size = (28, 28)
         testset = torchvision.datasets.MNIST(root="./data", train=False, download=True)
         classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
-        image_size = (28, 28)
+
         # Pick 30 samples randomly
         indices = torch.randperm(len(testset))[:num_images]
         raw_images = [np.asarray(testset[i][0]) for i in indices]
