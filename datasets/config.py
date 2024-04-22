@@ -20,6 +20,7 @@ def data_config(dataset):
 
 
 patch_size = 4
+hidden_size = 192
 
 num_hidden_layers = 4
 num_attention_heads = 8
@@ -34,7 +35,7 @@ qkv_bias = True
 CIFAR10 = {
     "name": "CIFAR10",
     "patch_size": patch_size,
-    "hidden_size": 48,
+    "hidden_size": hidden_size,
     "num_hidden_layers": num_hidden_layers,
     "num_attention_heads": num_attention_heads,
     "intermediate_size": 4 * 48,
@@ -50,10 +51,10 @@ CIFAR10 = {
 MNIST = {
     "name": "MNIST",
     "patch_size": patch_size,
-    "hidden_size": 48,
+    "hidden_size": hidden_size,
     "num_hidden_layers": num_hidden_layers,
     "num_attention_heads": num_attention_heads,
-    "intermediate_size": 4 * 48,
+    "intermediate_size": 4 * hidden_size,
     "hidden_dropout_prob": hidden_dropout_prob,
     "attention_probs_dropout_prob": attention_probs_dropout_prob,
     "initializer_range": initializer_range,
@@ -66,14 +67,14 @@ MNIST = {
 Places365 = {
     "name": "Places365",
     "patch_size": patch_size,
-    "hidden_size": 48,
+    "hidden_size": hidden_size,
     "num_hidden_layers": num_hidden_layers,
     "num_attention_heads": num_attention_heads,
-    "intermediate_size": 4 * 48,
+    "intermediate_size": 4 * hidden_size,
     "hidden_dropout_prob": hidden_dropout_prob,
     "attention_probs_dropout_prob": attention_probs_dropout_prob,
     "initializer_range": initializer_range,
-    "image_size": 64,
+    "image_size": 28,
     "num_classes": 365,
     "num_channels": 3,
     "qkv_bias": qkv_bias,
@@ -82,14 +83,14 @@ Places365 = {
 ImageNet200 = {
     "name": "ImageNet200",
     "patch_size": patch_size,
-    "hidden_size": 48,
+    "hidden_size": hidden_size,
     "num_hidden_layers": num_hidden_layers,
     "num_attention_heads": num_attention_heads,
-    "intermediate_size": 4 * 48,
+    "intermediate_size": 4 * hidden_size,
     "hidden_dropout_prob": hidden_dropout_prob,
     "attention_probs_dropout_prob": attention_probs_dropout_prob,
     "initializer_range": initializer_range,
-    "image_size": 64,
+    "image_size": 28,
     "num_classes": 200,
     "num_channels": 3,
     "qkv_bias": qkv_bias,
