@@ -3,8 +3,6 @@ from model import ViTForClassfication
 import torch
 from torch import nn, optim
 
-import os
-
 from datasets.config import data_config
 from datasets import load_data
 from trainer import Trainer
@@ -21,7 +19,7 @@ exp_name = f'vit-with-{epochs}-epochs'
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-for data in ['MNIST', 'CIFAR10', 'ImageNet200']:  
+for data in ['CIFAR10', 'ImageNet200']:
     config = data_config(data)
 
     # These are not hard constraints, but are used to prevent misconfigurations
