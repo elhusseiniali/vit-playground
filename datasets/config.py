@@ -38,7 +38,7 @@ CIFAR10 = {
     "hidden_size": hidden_size,
     "num_hidden_layers": num_hidden_layers,
     "num_attention_heads": num_attention_heads,
-    "intermediate_size": 4 * 48,
+    "intermediate_size": 4 * hidden_size,
     "hidden_dropout_prob": hidden_dropout_prob,
     "attention_probs_dropout_prob": attention_probs_dropout_prob,
     "initializer_range": initializer_range,
