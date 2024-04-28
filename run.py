@@ -18,8 +18,8 @@ exp_name = f'vit-with-{epochs}-epochs'
 
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-for data in ['CIFAR10', 'ImageNet200']:
+# 'ImageNet200'
+for data in ['CIFAR10']:
     config = data_config(data)
 
     # These are not hard constraints, but are used to prevent misconfigurations
@@ -52,8 +52,9 @@ for data in ['CIFAR10', 'ImageNet200']:
                     data + "_" + attention_type + "_with" + "_" + str(m)
                     + "_" + "random features"
                 )
-
+                print('********************')
                 print(f"Experiment: {exp_name}")
+                print('********************')
 
                 model = ViTForClassfication(
                     config,
